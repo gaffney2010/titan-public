@@ -66,13 +66,14 @@ def pull_data(
     ) as con:
         games = list()
         cur = con.cursor()
-        for row in cur.execute(
+        cur.execute(
             f"""
             SELECT away, home, date, neutral, winner, game_hash, timestamp
             FROM games
             WHERE date >= {min_date} AND date < {max_date};
-        """
-        ):
+            """
+        )
+        for row in cur.fetch_all():
             away, home, date, neutral, winner, game_hash, timestamp = row
             games.append(
                 Game(

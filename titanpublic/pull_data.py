@@ -73,7 +73,7 @@ def pull_data(
             WHERE date >= {min_date} AND date < {max_date};
             """
         )
-        for row in cur.fetch_all():
+        for row in cur.fetchall():
             away, home, date, neutral, winner, game_hash, timestamp = row
             games.append(
                 Game(

@@ -60,7 +60,7 @@ def update_feature(
     ) as con:
         cur = con.cursor()
         cur.execute(f"""
-            INSERT INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)
+            REPLACE INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)
             VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, UNIX_TIMESTAMP(NOW()));
         """
         )

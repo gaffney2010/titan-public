@@ -1,8 +1,8 @@
 import attr
 import collections
+import json
 import logging
 import functools
-import os
 from typing import Any, Dict, Tuple
 
 import MySQLdb
@@ -12,6 +12,7 @@ Date = int
 Team = str
 
 
+# TODO: I don't think I need this class anymore.
 @attr.s(frozen=True)
 class Game(object):
     away: Team = attr.ib()
@@ -23,6 +24,49 @@ class Game(object):
     timestamp: int = attr.ib()
 
 
+def update_feature(
+    db_name: str,
+    feature: str,
+    game_hash: int,
+    input_timestamp: int,
+    payload: Dict[str, Any],
+    secrets: Dict[str, Any],
+) -> None:
+    """Update a feature in Titan.
+
+    Looks up DB connection details from `secrets.yaml`.  Looks in the db_name database.
+    It then updates the game with the new payload / input_timestamp.
+
+    Args:
+        db_name: The database to look in, usually the name of the sport.
+        feature: The feature we want to update
+        game_hash: References the game.
+        input_timestamp: Max of upstream inputs' write time, for cache invalidation.
+        payload: A dict with a top-level field called `value`
+        secrets: Contains AWS login info.
+    """
+
+    host = secrets["aws_host"]
+    port = 3306
+    dbname = db_name
+    user = secrets["aws_username"]
+    password = secrets["aws_password"]
+
+    value = payload["value"]
+    payload = json.dumps(value)
+
+    with MySQLdb.connect(
+        host=host, port=port, user=user, passwd=password, db=dbname
+    ) as con:
+        cur = con.cursor()
+        cur.execute(f"""
+            INSERT INTO {db_name}.{feature} (game_hash, value, payload, input_timestamp, output_timestamp)
+            VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, UNIX_TIMESTAMP(NOW()));
+        """
+        )
+        con.commit()
+
+
 @functools.lru_cache()
 def pull_data(
     db_name: str,
@@ -30,7 +74,7 @@ def pull_data(
     min_date: int,
     max_date: int,
     secrets: Dict[str, Any],
-    payload: bool = False,
+    pull_payload: bool = False,
 ) -> Tuple[pd.DataFrame, int]:
     """Pull data from Titan's DB.
 
@@ -45,15 +89,16 @@ def pull_data(
         min_date: The minimum date to pull, inclusive.
         max_date: The maximum date to pull, exclusive.
         secrets: Contains AWS login info.
-        payload: If true, pulls entire payload for a feature, a json with potentially
-            auxillary info.  Otherwise returns a single value representing the feature.
+        pull_payload: If true, pulls entire payload for a feature, a json with 
+            potentially auxillary info.  Otherwise returns a single value representing
+            the feature.
     
     Returns:
         df: The results in a dataframe.
         max_timestamp: The maximum timestamp over all consumed data.  Needed for titan.
     """
     max_timestamp = 0
-    target_field = "payload" if payload else "value"
+    target_field = "payload" if pull_payload else "value"
 
     host = secrets["aws_host"]
     port = 3306
@@ -69,7 +114,7 @@ def pull_data(
         cur.execute(
             f"""
             SELECT away, home, date, neutral, winner, game_hash, timestamp
-            FROM games
+            FROM {db_name}.games
             WHERE date >= {min_date} AND date < {max_date};
             """
         )
@@ -98,12 +143,14 @@ def pull_data(
             feature_values["date"].append(game.date)
             feature_values["neutral"].append(game.neutral)
             feature_values["winner"].append(game.winner)
+            feature_values["game_hash"].append(game.game_hash)
+            feature_values["timestamp"].append(game.timestamp)
             for feature in features:
                 try:
                     cur = con.cursor()
                     cur.execute(
                         f"""
-                        SELECT {target_field}, output_timestamp
+                        SELECT {db_name}.{target_field}, output_timestamp
                         FROM {feature}
                         WHERE game_hash={game.game_hash}
                     """

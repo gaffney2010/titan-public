@@ -60,7 +60,7 @@ def update_feature(
     ) as con:
         cur = con.cursor()
         cur.execute(f"""
-            INSERT INTO {db_name}.{feature} (game_hash, value, payload, input_timestamp, output_timestamp)
+            INSERT INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)
             VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, UNIX_TIMESTAMP(NOW()));
         """
         )
@@ -150,7 +150,7 @@ def pull_data(
                     cur = con.cursor()
                     cur.execute(
                         f"""
-                        SELECT {db_name}.{target_field}, output_timestamp
+                        SELECT {target_field}, output_timestamp
                         FROM {feature}
                         WHERE game_hash={game.game_hash}
                     """

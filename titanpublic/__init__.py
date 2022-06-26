@@ -1,1 +1,1 @@
-from .pull_data import pull_data
+from .pull_data import update_feature, pull_data

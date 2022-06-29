@@ -52,8 +52,10 @@ def update_feature(
     user = secrets["aws_username"]
     password = secrets["aws_password"]
 
-    value = payload["value"]
-    payload = json.dumps(value)
+    value = "NULL"
+    if "value" in payload:
+        value = payload["value"]
+    payload = json.dumps(payload)
 
     with MySQLdb.connect(
         host=host, port=port, user=user, passwd=password, db=dbname

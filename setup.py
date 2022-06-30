@@ -5,7 +5,7 @@ setup(
     description="Helper to read titan DB",
     author="T.J. Gaffney",
     packages=["titanpublic"],
-    version="1.0.1",
+    version="1.1.0",
     install_requires=[
         "attrs==21.4.0",
         "mysqlclient==2.1.1",

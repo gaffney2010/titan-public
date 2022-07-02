@@ -26,6 +26,7 @@ class Game(object):
     timestamp: int = attr.ib()
 
 
+# TODO: Return success / failure
 def update_feature(
     db_name: str,
     feature: str,
@@ -64,6 +65,13 @@ def update_feature(
     ) as con:
         cur = con.cursor()
         cur.execute(f"""
+            SELECT input_timestamp from {feature} where game_hash = {game_hash};
+        """)
+        timestamp = cur.fetchone()
+        if timestamp > input_timestamp:
+            # Handle some weird race condition by failing here
+            return
+        cur.execute(f"""
             REPLACE INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)
             VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, UNIX_TIMESTAMP(NOW()));
         """
@@ -80,7 +88,7 @@ def pull_single_game(
     date: Date,
     secrets: Dict[str, Any],
     pull_payload: bool = False,
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], int]:
     """Pull a single game from Titan's DB.
 
     Looks up DB connection details from `secrets.yaml`.  Looks in the db_name database.
@@ -100,6 +108,7 @@ def pull_single_game(
     
     Returns:
         The variables for the game in a dict.
+        input_timestamp: The input_timestamp
     """
     max_timestamp = 0
     target_field = "payload" if pull_payload else "value"
@@ -131,23 +140,23 @@ def pull_single_game(
     feature_values["date"] = date
     feature_values["neutral"] = neutral
     feature_values["game_hash"] = game_hash
-    feature_values["timestamp"] = timestamp
     for feature in features:
         try:
             cur = con.cursor()
             cur.execute(
                 f"""
-                SELECT {target_field}
+                SELECT {target_field}, input_timestamp
                 FROM {feature}
                 WHERE game_hash = {game_hash}
             """
             )
-            value = cur.fetchone()
+            value, input_timestamp = cur.fetchone()
         except:
-            value = None
+            value, input_timestamp = None, 0
         feature_values[feature] = value
+        timestamp = max(timestamp, input_timestamp)
 
-    return feature_values
+    return feature_values, timestamp
 
 
 @functools.lru_cache()

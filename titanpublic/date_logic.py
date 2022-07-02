@@ -58,7 +58,7 @@ def current_year_through_yesterday(date: Date, cutoff: int = 630) -> Tuple[Date,
     st = year * 10000 + cutoff
 
     dt = _get_yesterday(date)
-    en = int(en.strftime("%Y%m%d"))
+    en = int(dt.strftime("%Y%m%d"))
 
     return (st, en)
 

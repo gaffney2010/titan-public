@@ -8,6 +8,8 @@ from typing import Any, Dict, Tuple
 import MySQLdb
 import pandas as pd
 
+from . import hash
+
 Date = int
 Team = str
 
@@ -67,6 +69,85 @@ def update_feature(
         """
         )
         con.commit()
+
+
+@functools.lru_cache()
+def pull_single_game(
+    db_name: str,
+    features: Tuple[str, ...],
+    away: Team,
+    home: Team,
+    date: Date,
+    secrets: Dict[str, Any],
+    pull_payload: bool = False,
+) -> Dict[str, Any]:
+    """Pull a single game from Titan's DB.
+
+    Looks up DB connection details from `secrets.yaml`.  Looks in the db_name database.
+    It pulls base data (except winner), and any features passed.
+
+    Args:
+        db_name: The database to look in, usually the name of the sport.
+        features: The non-base features, we want to pull.  These are the table names
+            in the database.
+        away: The away team.
+        home: The home team.
+        date: The date of the game we want to pull.
+        secrets: Contains AWS login info.
+        pull_payload: If true, pulls entire payload for a feature, a json with 
+            potentially auxillary info.  Otherwise returns a single value representing
+            the feature.
+    
+    Returns:
+        The variables for the game in a dict.
+    """
+    max_timestamp = 0
+    target_field = "payload" if pull_payload else "value"
+    game_hash = hash.game_hash(away, home, date)
+
+    host = secrets["aws_host"]
+    port = 3306
+    dbname = db_name
+    user = secrets["aws_username"]
+    password = secrets["aws_password"]
+
+    with MySQLdb.connect(
+        host=host, port=port, user=user, passwd=password, db=dbname
+    ) as con:
+        games = list()
+        cur = con.cursor()
+        cur.execute(
+            f"""
+            SELECT away, home, date, neutral, winner, game_hash, timestamp
+            FROM {db_name}.games
+            WHERE game_hash = {game_hash};
+            """
+        )
+        away, home, date, neutral, _, game_hash, timestamp = cur.fetchone()
+
+    feature_values = dict()
+    feature_values["away"] = away
+    feature_values["home"] = home
+    feature_values["date"] = date
+    feature_values["neutral"] = neutral
+    feature_values["game_hash"] = game_hash
+    feature_values["timestamp"] = timestamp
+    for feature in features:
+        try:
+            cur = con.cursor()
+            cur.execute(
+                f"""
+                SELECT {target_field}
+                FROM {feature}
+                WHERE game_hash = {game_hash}
+            """
+            )
+            value = cur.fetchone()
+        except:
+            value = None
+        feature_values[feature] = value
+
+    return feature_values
 
 
 @functools.lru_cache()
@@ -154,7 +235,7 @@ def pull_data(
                         f"""
                         SELECT {target_field}, output_timestamp
                         FROM {feature}
-                        WHERE game_hash={game.game_hash}
+                        WHERE game_hash = {game.game_hash}
                     """
                     )
                     value, output_timestamp = cur.fetchone()

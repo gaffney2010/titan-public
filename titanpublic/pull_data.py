@@ -68,7 +68,7 @@ def update_feature(
             SELECT input_timestamp from {feature} where game_hash = {game_hash};
         """)
         timestamp = cur.fetchone()
-        if timestamp > input_timestamp:
+        if timestamp is not None and int(timestamp) > int(input_timestamp):
             # Handle some weird race condition by failing here
             return
         cur.execute(f"""

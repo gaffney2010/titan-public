@@ -67,7 +67,7 @@ def update_feature(
         cur.execute(f"""
             SELECT input_timestamp from {feature} where game_hash = {game_hash};
         """)
-        timestamp = cur.fetchone()
+        timestamp = cur.fetchone()[0]
         if timestamp is not None and int(timestamp) > int(input_timestamp):
             # Handle some weird race condition by failing here
             return
@@ -79,7 +79,8 @@ def update_feature(
         con.commit()
 
 
-@functools.lru_cache()
+# Cache on call side if you want a cache.
+# @functools.lru_cache()
 def pull_single_game(
     db_name: str,
     features: Tuple[str, ...],
@@ -159,7 +160,7 @@ def pull_single_game(
     return feature_values, timestamp
 
 
-@functools.lru_cache()
+# @functools.lru_cache()
 def pull_data(
     db_name: str,
     features: Tuple[str, ...],

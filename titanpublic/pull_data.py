@@ -137,28 +137,28 @@ def pull_single_game(
         )
         away, home, date, neutral, _, game_hash, timestamp = cur.fetchone()
 
-    feature_values = dict()
-    feature_values["away"] = away
-    feature_values["home"] = home
-    feature_values["date"] = date
-    feature_values["neutral"] = neutral
-    feature_values["game_hash"] = game_hash
-    for feature in features:
-        try:
-            cur = con.cursor()
-            cur.execute(
-                f"""
-                SELECT {target_field}, input_timestamp
-                FROM {feature}
-                WHERE game_hash = {game_hash};
-                """
-            )
-            value, input_timestamp = cur.fetchone()
-        except:
-            logging.debug(traceback.format_exc())
-            value, input_timestamp = None, 0
-        feature_values[feature] = value
-        timestamp = max(timestamp, input_timestamp)
+        feature_values = dict()
+        feature_values["away"] = away
+        feature_values["home"] = home
+        feature_values["date"] = date
+        feature_values["neutral"] = neutral
+        feature_values["game_hash"] = game_hash
+        for feature in features:
+            try:
+                cur = con.cursor()
+                cur.execute(
+                    f"""
+                    SELECT {target_field}, input_timestamp
+                    FROM {feature}
+                    WHERE game_hash = {game_hash};
+                    """
+                )
+                value, input_timestamp = cur.fetchone()
+            except:
+                logging.debug(traceback.format_exc())
+                value, input_timestamp = None, 0
+            feature_values[feature] = value
+            timestamp = max(timestamp, input_timestamp)
 
     return feature_values, timestamp
 

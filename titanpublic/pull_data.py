@@ -1,11 +1,10 @@
-import attr
 import collections
 import json
 import logging
-import functools
 import traceback
 from typing import Any, Dict, Tuple
 
+import attr
 import MySQLdb
 import pandas as pd
 
@@ -151,11 +150,12 @@ def pull_single_game(
                 f"""
                 SELECT {target_field}, input_timestamp
                 FROM {feature}
-                WHERE game_hash = {game_hash}
-            """
+                WHERE game_hash = {game_hash};
+                """
             )
             value, input_timestamp = cur.fetchone()
         except:
+            logging.debug(traceback.format_exc())
             value, input_timestamp = None, 0
         feature_values[feature] = value
         timestamp = max(timestamp, input_timestamp)
@@ -249,7 +249,7 @@ def pull_data(
                         SELECT {target_field}, output_timestamp
                         FROM {feature}
                         WHERE game_hash = {game.game_hash};
-                    """
+                        """
                     )
                     value, output_timestamp = cur.fetchone()
                 except:

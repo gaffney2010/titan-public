@@ -3,6 +3,7 @@ import collections
 import json
 import logging
 import functools
+import traceback
 from typing import Any, Dict, Tuple
 
 import MySQLdb
@@ -247,11 +248,12 @@ def pull_data(
                         f"""
                         SELECT {target_field}, output_timestamp
                         FROM {feature}
-                        WHERE game_hash = {game.game_hash}
+                        WHERE game_hash = {game.game_hash};
                     """
                     )
                     value, output_timestamp = cur.fetchone()
                 except:
+                    logging.debug(traceback.format_exc())
                     value, output_timestamp = None, 0
                 feature_values[feature].append(value)
                 max_timestamp = max(max_timestamp, output_timestamp)

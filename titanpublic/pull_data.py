@@ -113,7 +113,6 @@ def pull_single_game(
         The variables for the game in a dict.
         input_timestamp: The input_timestamp
     """
-    max_timestamp = 0
     target_field = "payload" if pull_payload else "value"
     game_hash = hash.game_hash(away, home, date)
 
@@ -126,7 +125,6 @@ def pull_single_game(
     with MySQLdb.connect(
         host=host, port=port, user=user, passwd=password, db=dbname
     ) as con:
-        games = list()
         cur = con.cursor()
         cur.execute(
             f"""
@@ -148,17 +146,17 @@ def pull_single_game(
                 cur = con.cursor()
                 cur.execute(
                     f"""
-                    SELECT {target_field}, input_timestamp
+                    SELECT {target_field}, output_timestamp
                     FROM {feature}
                     WHERE game_hash = {game_hash};
                     """
                 )
-                value, input_timestamp = cur.fetchone()
+                value, output_timestamp = cur.fetchone()
             except:
                 logging.debug(traceback.format_exc())
-                value, input_timestamp = None, 0
+                value, output_timestamp = None, 0
             feature_values[feature] = value
-            timestamp = max(timestamp, input_timestamp)
+            timestamp = max(timestamp, output_timestamp)
 
     return feature_values, timestamp
 

@@ -64,16 +64,19 @@ def update_feature(
         host=host, port=port, user=user, passwd=password, db=dbname
     ) as con:
         cur = con.cursor()
-        cur.execute(f"""
+        cur.execute(
+            f"""
             SELECT input_timestamp from {feature} where game_hash = {game_hash};
-        """)
+        """
+        )
         timestamp = cur.fetchone()
         if timestamp is not None:
             timestamp = timestamp[0]
         if timestamp is not None and int(timestamp) > int(input_timestamp):
             # Handle some weird race condition by failing here
             return
-        cur.execute(f"""
+        cur.execute(
+            f"""
             REPLACE INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)
             VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, UNIX_TIMESTAMP(NOW()));
         """

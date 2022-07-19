@@ -4,16 +4,20 @@ from typing import Tuple
 Date = int
 
 
-def previous_year(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
+def previous_years(date: Date, years_back: int, cutoff: int = 630) -> Tuple[Date, Date]:
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
     if month_day <= cutoff:
         year -= 1
 
     en = year * 10000 + cutoff
-    st = en - 10000
+    st = en - 10000 * years_back
 
     return (st, en)
+
+
+def previous_year(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
+    return previous_years(date, 1, cutoff=cutoff)
 
 
 def current_year(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:

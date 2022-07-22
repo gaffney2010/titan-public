@@ -197,16 +197,33 @@ def pull_data(
     max_timestamp = 0
     target_field = "payload" if pull_payload else "value"
 
-    column_names = ["away", "home", "date", "neutral", "winner", "game_hash", "timestamp",]
-    keep_column_names = ["away", "home", "date", "neutral", "winner", "game_hash",]
+    column_names = [
+        "away",
+        "home",
+        "date",
+        "neutral",
+        "winner",
+        "game_hash",
+        "timestamp",
+    ]
+    keep_column_names = [
+        "away",
+        "home",
+        "date",
+        "neutral",
+        "winner",
+        "game_hash",
+    ]
     ts_columns = ["timestamp"]
 
     feature_field_names = list()
     for feature in features:
-        feature_field_names.append(f"""
+        feature_field_names.append(
+            f"""
             {feature}.{target_field} AS {feature},
             {feature}.output_timestamp as {feature}_ts, 
-        """)
+        """
+        )
         column_names.extend([feature, f"{feature}_ts"])
         keep_column_names.append(feature)
         ts_columns.append(f"{feature}_ts")
@@ -216,14 +233,16 @@ def pull_data(
 
     feature_joins = list()
     for feature in features:
-        feature_joins.append(f"""
+        feature_joins.append(
+            f"""
             LEFT JOIN {db_name}.{feature} AS {feature}
             ON games.game_hash = {feature}.game_hash
-        """)
+        """
+        )
     feature_join_clause = "".join(feature_joins)
 
     sql_query = f"""
-        SELECT away, home, date, neutral, winner, game_hash, timestamp,
+        SELECT away, home, date, neutral, winner, games.game_hash, timestamp,
             {feature_field_clause}
         FROM {db_name}.games AS games
         {feature_join_clause}

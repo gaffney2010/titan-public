@@ -197,67 +197,52 @@ def pull_data(
     max_timestamp = 0
     target_field = "payload" if pull_payload else "value"
 
+    column_names = ["away", "home", "date", "neutral", "winner", "game_hash", "timestamp",]
+    keep_column_names = ["away", "home", "date", "neutral", "winner", "game_hash",]
+    ts_columns = ["timestamp"]
+
+    feature_field_names = list()
+    for feature in features:
+        feature_field_names.append(f"""
+            {feature}.{target_field} AS {feature},
+            {feature}.output_timestamp as {feature}_ts, 
+        """)
+        column_names.extend([feature, f"{feature}_ts"])
+        keep_column_names.append(feature)
+        ts_columns.append(f"{feature}_ts")
+    feature_field_names.append("1 AS const")  # Trailing comma
+    column_names.append("const")
+    feature_field_clause = "".join(feature_field_names)
+
+    feature_joins = list()
+    for feature in features:
+        feature_joins.append(f"""
+            LEFT JOIN {db_name}.{feature} AS {feature}
+            ON games.game_hash = {feature}.game_hash
+        """)
+    feature_join_clause = "".join(feature_joins)
+
+    sql_query = f"""
+        SELECT away, home, date, neutral, winner, game_hash, timestamp,
+            {feature_field_clause}
+        FROM {db_name}.games AS games
+        {feature_join_clause}
+        WHERE date >= {min_date} AND date < {max_date};
+        """
+
     host = secrets["aws_host"]
     port = 3306
     dbname = db_name
     user = secrets["aws_username"]
     password = secrets["aws_password"]
-
     with MySQLdb.connect(
         host=host, port=port, user=user, passwd=password, db=dbname
     ) as con:
-        games = list()
-        cur = con.cursor()
-        cur.execute(
-            f"""
-            SELECT away, home, date, neutral, winner, game_hash, timestamp
-            FROM {db_name}.games
-            WHERE date >= {min_date} AND date < {max_date};
-            """
-        )
-        for row in cur.fetchall():
-            away, home, date, neutral, winner, game_hash, timestamp = row
-            games.append(
-                Game(
-                    away=away,
-                    home=home,
-                    date=date,
-                    neutral=neutral,
-                    winner=winner,
-                    game_hash=game_hash,
-                    timestamp=timestamp,
-                )
-            )
-            max_timestamp = max(max_timestamp, timestamp)
+        pd_query = pd.read_sql_query(sql_query, con)
+        df = pd.DataFrame(pd_query, columns=column_names)
 
-        logging.debug(
-            f"Building fresh csv with features={features} and date_range=({min_date}, {max_date})"
-        )
-        feature_values = collections.defaultdict(list)
-        for game in games:
-            feature_values["away"].append(game.away)
-            feature_values["home"].append(game.home)
-            feature_values["date"].append(game.date)
-            feature_values["neutral"].append(game.neutral)
-            feature_values["winner"].append(game.winner)
-            feature_values["game_hash"].append(game.game_hash)
-            feature_values["timestamp"].append(game.timestamp)
-            for feature in features:
-                try:
-                    cur = con.cursor()
-                    cur.execute(
-                        f"""
-                        SELECT {target_field}, output_timestamp
-                        FROM {feature}
-                        WHERE game_hash = {game.game_hash};
-                        """
-                    )
-                    value, output_timestamp = cur.fetchone()
-                except:
-                    logging.debug(traceback.format_exc())
-                    value, output_timestamp = None, 0
-                feature_values[feature].append(value)
-                max_timestamp = max(max_timestamp, output_timestamp)
+    max_timestamp = 0
+    for col in ts_columns:
+        max_timestamp = max(max_timestamp, df[col].max())
 
-    df = pd.DataFrame(feature_values)
-    return df, max_timestamp
+    return df[keep_column_names], max_timestamp

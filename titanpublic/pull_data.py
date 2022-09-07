@@ -9,21 +9,7 @@ import MySQLdb
 import pandas as pd
 
 from . import hash
-
-Date = int
-Team = str
-
-
-# TODO: I don't think I need this class anymore.
-@attr.s(frozen=True)
-class Game(object):
-    away: Team = attr.ib()
-    home: Team = attr.ib()
-    date: Date = attr.ib()
-    neutral: int = attr.ib()
-    winner: Team = attr.ib()
-    game_hash: int = attr.ib()
-    timestamp: int = attr.ib()
+from . import shared_types
 
 
 # TODO: Return success / failure
@@ -89,9 +75,9 @@ def update_feature(
 def pull_single_game(
     db_name: str,
     features: Tuple[str, ...],
-    away: Team,
-    home: Team,
-    date: Date,
+    away: shared_types.TeamName,
+    home: shared_types.TeamName,
+    date: shared_types.Date,
     secrets: Dict[str, Any],
     pull_payload: bool = False,
 ) -> Tuple[Dict[str, Any], int]:
@@ -108,10 +94,10 @@ def pull_single_game(
         home: The home team.
         date: The date of the game we want to pull.
         secrets: Contains AWS login info.
-        pull_payload: If true, pulls entire payload for a feature, a json with 
+        pull_payload: If true, pulls entire payload for a feature, a json with
             potentially auxillary info.  Otherwise returns a single value representing
             the feature.
-    
+
     Returns:
         The variables for the game in a dict.
         input_timestamp: The input_timestamp
@@ -186,10 +172,10 @@ def pull_data(
         min_date: The minimum date to pull, inclusive.
         max_date: The maximum date to pull, exclusive.
         secrets: Contains AWS login info.
-        pull_payload: If true, pulls entire payload for a feature, a json with 
+        pull_payload: If true, pulls entire payload for a feature, a json with
             potentially auxillary info.  Otherwise returns a single value representing
             the feature.
-    
+
     Returns:
         df: The results in a dataframe.
         max_timestamp: The maximum timestamp over all consumed data.  Needed for titan.

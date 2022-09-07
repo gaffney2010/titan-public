@@ -1,10 +1,23 @@
 import datetime
-from typing import Tuple
+from typing import Optional, Tuple
+import warnings
 
-Date = int
+from . import shared_types
 
 
-def previous_years(date: Date, years_back: int, cutoff: int = 630) -> Tuple[Date, Date]:
+def previous_years(
+    date: shared_types.Date,
+    years_back: int,
+    cutoff: Optional[int] = None,
+    sport: str = "ncaam",
+) -> Tuple[shared_types.Date, shared_types.Date]:
+    if cutoff:
+        # Need to deprecate because logic may change completely for other sports.
+        warnings.warn("cutoff argument is deprecated")
+    else:
+        if sport == "ncaam":
+            cutoff = 630
+
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
     if month_day <= cutoff:
@@ -16,11 +29,22 @@ def previous_years(date: Date, years_back: int, cutoff: int = 630) -> Tuple[Date
     return (st, en)
 
 
-def previous_year(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
-    return previous_years(date, 1, cutoff=cutoff)
+def previous_year(
+    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+) -> Tuple[shared_types.Date, shared_types.Date]:
+    return previous_years(date, 1, cutoff=cutoff, sport=sport)
 
 
-def current_year(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
+def current_year(
+    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+) -> Tuple[shared_types.Date, shared_types.Date]:
+    if cutoff:
+        # Need to deprecate because logic may change completely for other sports.
+        warnings.warn("cutoff argument is deprecated")
+    else:
+        if sport == "ncaam":
+            cutoff = 630
+
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
     if month_day <= cutoff:
@@ -32,13 +56,22 @@ def current_year(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
     return (st, en)
 
 
-def _get_yesterday(date: Date) -> datetime.datetime:
+def _get_yesterday(date: shared_types.Date) -> datetime.datetime:
     dt = datetime.datetime.strptime(str(date), "%Y%m%d").date()
     dt = dt - datetime.timedelta(1)
     return dt
 
 
-def current_year_through_week(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
+def current_year_through_week(
+    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+) -> Tuple[shared_types.Date, shared_types.Date]:
+    if cutoff:
+        # Need to deprecate because logic may change completely for other sports.
+        warnings.warn("cutoff argument is deprecated")
+    else:
+        if sport == "ncaam":
+            cutoff = 630
+
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
     if month_day <= cutoff:
@@ -53,7 +86,16 @@ def current_year_through_week(date: Date, cutoff: int = 630) -> Tuple[Date, Date
     return (st, en)
 
 
-def current_year_through_yesterday(date: Date, cutoff: int = 630) -> Tuple[Date, Date]:
+def current_year_through_yesterday(
+    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+) -> Tuple[shared_types.Date, shared_types.Date]:
+    if cutoff:
+        # Need to deprecate because logic may change completely for other sports.
+        warnings.warn("cutoff argument is deprecated")
+    else:
+        if sport == "ncaam":
+            cutoff = 630
+
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
     if month_day <= cutoff:

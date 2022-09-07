@@ -17,6 +17,8 @@ def previous_years(
     else:
         if sport == "ncaam":
             cutoff = 630
+        else:
+            raise NotImplementedError(f"Sport {sport} is not supported for year model.")
 
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
@@ -44,6 +46,8 @@ def current_year(
     else:
         if sport == "ncaam":
             cutoff = 630
+        else:
+            raise NotImplementedError(f"Sport {sport} is not supported for year model.")
 
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
@@ -71,6 +75,8 @@ def current_year_through_week(
     else:
         if sport == "ncaam":
             cutoff = 630
+        else:
+            raise NotImplementedError(f"Sport {sport} is not supported for year model.")
 
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)
@@ -95,6 +101,8 @@ def current_year_through_yesterday(
     else:
         if sport == "ncaam":
             cutoff = 630
+        else:
+            raise NotImplementedError(f"Sport {sport} is not supported for year model.")
 
     # Find largest cutoff that's less than date.
     year, month_day = divmod(date, 10000)

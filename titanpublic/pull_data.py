@@ -20,7 +20,7 @@ def update_feature(
     input_timestamp: int,
     payload: Dict[str, Any],
     secrets: Dict[str, Any],
-) -> None:
+) -> int:
     """Update a feature in Titan.
 
     Looks up DB connection details from `secrets.yaml`.  Looks in the db_name database.
@@ -33,6 +33,9 @@ def update_feature(
         input_timestamp: Max of upstream inputs' write time, for cache invalidation.
         payload: A dict with a top-level field called `value`
         secrets: Contains AWS login info.
+
+    Returns:
+        output_timestamp written with new record
     """
 
     host = secrets["aws_host"]
@@ -61,13 +64,17 @@ def update_feature(
         if timestamp is not None and int(timestamp) > int(input_timestamp):
             # Handle some weird race condition by failing here
             return
+        cur.execute("SELECT UNIX_TIMESTAMP(NOW());")
+        new_timestamp = cur.fetchone()[0]
         cur.execute(
             f"""
             REPLACE INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)
-            VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, UNIX_TIMESTAMP(NOW()));
+            VALUES ({game_hash}, {value}, '{payload}', {input_timestamp}, {new_timestamp});
         """
         )
         con.commit()
+
+    return int(new_timestamp)
 
 
 # Cache on call side if you want a cache.

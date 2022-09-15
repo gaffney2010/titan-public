@@ -1,7 +1,6 @@
 import functools
 import os
-from typing import Any, Callable, Dict, Optional, Tuple
-import warnings
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from frozendict import frozendict
 import yaml
@@ -15,25 +14,36 @@ def get_secrets(dir: Optional[str] = None):
     return secrets
 
 
-def cache(func):
-    """Just functools cache, but with exception handling"""
-    _cache: Dict[Tuple[Any], Callable] = dict()
+def cache(no_cache_exception: Optional[List[Exception]] = None):
+    """Just functools cache, but with exception handling.
+    
+    If no_cache_exception is set, don't cache when the function returns this value
+    """
+    if not no_cache_exception:
+        no_cache_exception = list()
+    
+    def _cache(func):
+        _cache: Dict[Tuple[Any], Callable] = dict()
 
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        nonlocal _cache
-        key = functools._make_key(args, kwargs, False)
-        if key in _cache:
-            return _cache[key]()
-        try:
-            value = func(*args, **kwargs)
-            _cache[key] = lambda: value
-            return value
-        except Exception as e:
-            def raiser():
-                nonlocal e
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            nonlocal _cache
+            key = functools._make_key(args, kwargs, False)
+            if key in _cache:
+                return _cache[key]()
+            try:
+                value = func(*args, **kwargs)
+                _cache[key] = lambda: value
+                return value
+            except Exception as e:
+                if any([isinstance(e, E) for E in no_cache_exception]):
+                    # Don't cache anything
+                    raise e
+                def raiser():
+                    nonlocal e
+                    raise e
+                _cache[key] = raiser
                 raise e
-            _cache[key] = raiser
-            raise e
 
-    return inner
+        return inner
+    return _cache

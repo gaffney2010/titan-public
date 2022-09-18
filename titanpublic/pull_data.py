@@ -17,7 +17,7 @@ def update_feature(
     db_name: str,
     feature: str,
     game_hash: int,
-    input_timestamp: int,
+    input_timestamp: str,
     payload: Dict[str, Any],
     secrets: Dict[str, Any],
 ) -> int:
@@ -31,6 +31,8 @@ def update_feature(
         feature: The feature we want to update
         game_hash: References the game.
         input_timestamp: Max of upstream inputs' write time, for cache invalidation.
+            This is string encoded, and may be multiple timestamps separated with a
+            comma.
         payload: A dict with a top-level field called `value`
         secrets: Contains AWS login info.
 
@@ -48,6 +50,9 @@ def update_feature(
     if "value" in payload:
         value = payload["value"]
     payload = json.dumps(payload)
+
+    if input_timestamp.find(",") != -1:
+        input_timestamp = str(max([int(x) for x in input_timestamp.split(",")]))
 
     with MySQLdb.connect(
         host=host, port=port, user=user, passwd=password, db=dbname

@@ -14,6 +14,11 @@ def get_secrets(dir: Optional[str] = None):
     return secrets
 
 
+class ExceptionCacheWrapper(object):
+    def __init__(self, exc: Exception):
+        self.exc = exc
+
+
 def cache(no_cache_exception: Optional[List[Exception]] = None):
     """Just functools cache, but with exception handling.
     
@@ -30,19 +35,20 @@ def cache(no_cache_exception: Optional[List[Exception]] = None):
             nonlocal _cache
             key = functools._make_key(args, kwargs, False)
             if key in _cache:
-                return _cache[key]()
+                result = _cache[key]
+                if isinstance(result, ExceptionCacheWrapper):
+                    raise result.exc
+                return result
+
             try:
                 value = func(*args, **kwargs)
-                _cache[key] = lambda: value
+                _cache[key] = value
                 return value
             except Exception as e:
                 if any([isinstance(e, E) for E in no_cache_exception]):
                     # Don't cache anything
                     raise e
-                def raiser():
-                    nonlocal e
-                    raise e
-                _cache[key] = raiser
+                _cache[key] = ExceptionCacheWrapper(e)
                 raise e
 
         return inner

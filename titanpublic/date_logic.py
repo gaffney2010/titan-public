@@ -5,6 +5,27 @@ import warnings
 from . import shared_types
 
 
+def season_year_label(
+    date: shared_types.Date,
+    cutoff: Optional[int] = None,
+    sport: str = "ncaam",
+) -> shared_types.Date:
+    if cutoff:
+        # Need to deprecate because logic may change completely for other sports.
+        warnings.warn("cutoff argument is deprecated")
+    else:
+        if sport == "ncaam":
+            cutoff = 630
+        else:
+            raise NotImplementedError(f"Sport {sport} is not supported for year model.")
+
+    year, month_day = divmod(date, 10000)
+    if month_day > cutoff:
+        year += 1
+
+    return year
+
+
 def previous_years(
     date: shared_types.Date,
     years_back: int,

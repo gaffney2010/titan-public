@@ -81,6 +81,13 @@ def current_year(
     return (st, en)
 
 
+def current_year_from_season(season: int, sport: str) -> Tuple[shared_types.Date, shared_types.Date]:
+    if sport == "ncaam":
+        return current_year(season*10000+101, sport=sport)
+    else:
+        raise NotImplementedError(f"Sport {sport} is not supported for year model.")
+
+
 def _get_yesterday(date: shared_types.Date) -> datetime.datetime:
     dt = datetime.datetime.strptime(str(date), "%Y%m%d").date()
     dt = dt - datetime.timedelta(1)

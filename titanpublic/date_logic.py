@@ -9,19 +9,18 @@ def _current_year_start(date: shared_types.Date, sport: str) -> shared_types.Dat
     """Return a date between season containing `date` and previous season."""
     if "ncaam" == sport:
         cutoff = 630
-        # Find largest cutoff that's less than date.
-        year, month_day = divmod(date, 10000)
-        if month_day <= cutoff:
-            year -= 1
+    elif "ncaaf" == sport:
+        # Some pandemic games were played in the spring.  :/
+        cutoff = 630
+    else:
+        raise NotImplementedError(f"Sport {sport} is not supported.")
 
-        return year * 10000 + cutoff
+    # Find largest cutoff that's less than date.
+    year, month_day = divmod(date, 10000)
+    if month_day <= cutoff:
+        year -= 1
 
-    if "ncaaf" == sport:
-        year = date // 10000
-        
-        return year * 10000 + 101
-
-    raise NotImplementedError(f"Sport {sport} is not supported.")
+    return year * 10000 + cutoff
 
 
 def season_year_label(
@@ -37,7 +36,12 @@ def season_year_label(
         return year
     
     if "ncaaf" == sport:
-        year = date // 10000
+        # NCAAF is marked by the beginning of the season instead of the end
+        cutoff = 630
+        year, month_day = divmod(date, 10000)
+        if month_day < cutoff:
+            year -= 1
+
         return year
     
     raise NotImplementedError(f"Sport {sport} is not supported for year model.")

@@ -55,9 +55,9 @@ def previous_years(
 
 
 def previous_year(
-    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+    date: shared_types.Date, sport: str = "ncaam"
 ) -> Tuple[shared_types.Date, shared_types.Date]:
-    return previous_years(date, 1, cutoff=cutoff, sport=sport)
+    return previous_years(date, 1, sport=sport)
 
 
 def current_year(

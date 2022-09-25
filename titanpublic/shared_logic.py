@@ -16,7 +16,8 @@ def get_secrets(dir: Optional[str] = None):
 
 class ExceptionCacheWrapper(object):
     def __init__(self, exc: Exception):
-        self.exc = exc
+        self.exc_type = type(exc)
+        self.exc_str = str(exc)
 
 
 def cache(no_cache_exception: Optional[List[Exception]] = None):
@@ -28,27 +29,27 @@ def cache(no_cache_exception: Optional[List[Exception]] = None):
         no_cache_exception = list()
     
     def _cache(func):
-        _cache: Dict[Tuple[Any], Callable] = dict()
+        __cache: Dict[Tuple[Any], Callable] = dict()
 
         @functools.wraps(func)
         def inner(*args, **kwargs):
-            nonlocal _cache
+            nonlocal __cache
             key = functools._make_key(args, kwargs, False)
-            if key in _cache:
-                result = _cache[key]
+            if key in __cache:
+                result = __cache[key]
                 if isinstance(result, ExceptionCacheWrapper):
-                    raise result.exc
+                    raise result.exc_type(result.exc_str)
                 return result
 
             try:
                 value = func(*args, **kwargs)
-                _cache[key] = value
+                __cache[key] = value
                 return value
             except Exception as e:
                 if any([isinstance(e, E) for E in no_cache_exception]):
                     # Don't cache anything
                     raise e
-                _cache[key] = ExceptionCacheWrapper(e)
+                __cache[key] = ExceptionCacheWrapper(e)
                 raise e
 
         return inner

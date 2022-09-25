@@ -15,4 +15,6 @@ for x in range(10):
     try:
         print(bad_func(x%2))
     except ValueError as err:
-        print(repr(err))
+        # print(traceback.format_exception_only(type(err), err))
+        print(traceback.format_exc())
+        # print(repr(err))

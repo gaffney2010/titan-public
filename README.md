@@ -9,7 +9,7 @@ A nice API for accessing titan data
 2. Pip install this library.  For example, include this in your requirements:
 
 ```
-titanpublic @ git+https://github.com/gaffney2010/titan-public.git#egg=titanpublic-1.12.2
+titanpublic @ git+https://github.com/gaffney2010/titan-public.git#egg=titanpublic-1.12.3
 ```
 
 3. Copy `secrets.yaml` into your directory.  pip install pyyaml and frozendict.

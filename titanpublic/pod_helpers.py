@@ -56,7 +56,7 @@ def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str
 def database_resolver(sport: str, env: str) -> str:
     dev_suffix = ""
     if "dev" == env:
-        dev_suffix = "-dev"
+        dev_suffix = "_dev"
 
     return f"{sport}{dev_suffix}"
 

@@ -34,7 +34,7 @@ MessageCallback = Callable[
 
 @attr.s(frozen=True)
 class TitanConfig(object):
-    sport: str
+    sport: str = attr.ib()
     env: str = attr.ib()
     secrets_dir: str = attr.ib()
     # Don't include any suffixes

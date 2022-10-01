@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 import warnings
 
 from . import shared_types
@@ -62,6 +62,29 @@ def previous_year(
     date: shared_types.Date, sport: str = "ncaam"
 ) -> Tuple[shared_types.Date, shared_types.Date]:
     return previous_years(date, 1, sport=sport)
+
+
+def previous_years_with_gaps(
+    date: shared_types.Date,
+    years_back: int,
+    sport: str,
+    gaps: List[shared_types.Date],
+) -> shared_types.MultiRange:
+    """Gaps is a list of dates that should be excluded."""
+    years_counted, years_considered = 0, 0
+    en = _current_year_start(date, sport)
+    results = list()
+    
+    # Do limit for safety
+    while years_considered < 100 and years_counted < years_back:
+        st = en - 10000 * years_back
+        for gap in gaps:
+            if st <= gap < en:
+                break
+        else:
+            results.append((st, en))
+
+    return shared_types.MultiRange(results)
 
 
 def current_year(

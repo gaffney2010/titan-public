@@ -263,3 +263,29 @@ def pull_data(
         max_timestamp = max(max_timestamp, df[col].max())
 
     return df[keep_column_names], max_timestamp
+
+
+def pull_data_multi_range(
+    db_name: str,
+    features: Tuple[str, ...],
+    multi_range: shared_types.MultiRange,
+    secrets: Dict[str, Any],
+    pull_payload: bool = False,
+) -> Tuple[pd.DataFrame, int]:
+    dfs, tss = list(), list()
+    for st, en in multi_range.ranges:
+        df, ts = pull_data(
+            db_name,
+            features,
+            st,
+            en,
+            secrets,
+            pull_payload=pull_payload,
+        )
+        dfs.append(df)
+        tss.append(ts)
+
+    result_df = pd.concat(dfs, ignore_index=True)
+    result_ts = max(tss)
+
+    return result_df, result_ts

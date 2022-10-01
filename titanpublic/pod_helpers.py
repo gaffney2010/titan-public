@@ -175,3 +175,14 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
                 auto_ack=True,
             )
             channel.start_consuming()
+
+
+def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str:
+    dev_suffix = ""
+    if "dev" == env:
+        dev_suffix = "-dev"
+
+    if suffix:
+        suffix = f"-{suffix}"
+
+    return f"{id}-{sport}{dev_suffix}{suffix}"

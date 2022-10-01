@@ -1,6 +1,15 @@
+from typing import List, Tuple
+
 Date = int
 TeamName = str
 Year = int
+
+
+class MultiRange(object):
+    """Some day we'll replace all our single ranges with multi-ranges"""
+    def __init__(self, ranges: List[Tuple[Date, Date]]):
+        # TODO: Assert here that the ranges don't overlap
+        self.ranges = ranges
 
 
 class TitanException(Exception):

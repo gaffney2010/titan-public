@@ -178,7 +178,7 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
                 rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
                 rc.channel.basic_consume(
                     queue=routing_key_resolver(
-                        titan_config.outbound_channel,
+                        titan_config.inbound_channel,
                         titan_config.sport,
                         titan_config.env,
                     ),
@@ -197,7 +197,7 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
             rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
             rc.channel.basic_consume(
                 queue=routing_key_resolver(
-                    titan_config.outbound_channel, titan_config.sport, titan_config.env
+                    titan_config.inbound_channel, titan_config.sport, titan_config.env
                 ),
                 on_message_callback=rc.callback,
                 auto_ack=True,

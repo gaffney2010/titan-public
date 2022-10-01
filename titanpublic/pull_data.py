@@ -71,6 +71,15 @@ def update_feature(
             return
         cur.execute("SELECT UNIX_TIMESTAMP(NOW());")
         new_timestamp = cur.fetchone()[0]
+
+        if not game_hash:
+            raise Exception("Invalid game_hash on titan write")
+        if value is None:
+            raise Exception("Invalid value on titan write")
+        if payload is None:
+            raise Exception("Invalid payload on titan write")
+        if input_timestamp is None:
+            raise Exception("Invalid input_ts on titan write")
         cur.execute(
             f"""
             REPLACE INTO {feature} (game_hash, value, payload, input_timestamp, output_timestamp)

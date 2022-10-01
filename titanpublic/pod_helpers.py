@@ -114,7 +114,7 @@ def process_message(
         this_game_hash,
         input_timestamp,
         result,
-        shared_logic.get_secrets(os.path.dirname(os.path.abspath(__file__))),
+        shared_logic.get_secrets(titan_config.secrets_dir),
     )
     notify_titan(body, output_timestamp, "success", titan_config, channel)
 

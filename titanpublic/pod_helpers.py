@@ -34,14 +34,27 @@ MessageCallback = Callable[
 
 @attr.s(frozen=True)
 class TitanConfig(object):
+    sport: str
     env: str = attr.ib()
     secrets_dir: str = attr.ib()
+    # Don't include any suffixes
     inbound_channel: str = attr.ib()
     outbound_channel: str = attr.ib()
 
 
+def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str:
+    dev_suffix = ""
+    if "dev" == env:
+        dev_suffix = "-dev"
+
+    if suffix:
+        suffix = f"-{suffix}"
+
+    return f"{id}-{sport}{dev_suffix}{suffix}"
+
+
 def notify_titan(
-    input_body: str, output_timestamp: int, status: str, outbound_channel: str
+    input_body: str, output_timestamp: int, status: str, outbound_channel: str, titan_config: TitanConfig
 ) -> None:
     # Defined below
     global channel
@@ -55,7 +68,7 @@ def notify_titan(
     )
     channel.basic_publish(
         exchange="",
-        routing_key=outbound_channel,
+        routing_key=routing_key_resolver(outbound_channel, titan_config.sport, titan_config.env),
         body=output_body,
         properties=pika.BasicProperties(delivery_mode=2),
     )
@@ -84,7 +97,7 @@ def process_message(
         full_msg = f"M_ERR_TAG::{model_name}:{type(err).__name__} - {body} - {str(err)}"
         # logging.error(traceback.format_exc())
         logging.error(full_msg)
-        notify_titan(body, 0, "failure")
+        notify_titan(body, 0, "failure", titan_config)
         return
     except shared_types.TitanRecurrentException as err:
         result = {"reason": type(err).__name__}
@@ -94,7 +107,7 @@ def process_message(
     except Exception as err:  # Includes TitanCriticalExceptions
         logging.error(traceback.format_exception(err))
         logging.error(f"Uncaught exception on {body}")
-        notify_titan(body, 0, "critical")
+        notify_titan(body, 0, "critical", titan_config)
         return
 
     this_game_hash = hash.game_hash(away, home, date)
@@ -106,7 +119,7 @@ def process_message(
         result,
         shared_logic.get_secrets(os.path.dirname(os.path.abspath(__file__))),
     )
-    notify_titan(body, output_timestamp, "success", titan_config.outbound_channel)
+    notify_titan(body, output_timestamp, "success", titan_config.outbound_channel, titan_config)
 
 
 class RabbitChannel(object):
@@ -138,8 +151,8 @@ class RabbitChannel(object):
     def build_connection(self):
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=self.titan_config.inbound_channel)
-        self.channel.queue_declare(queue=self.titan_config.outbound_channel)
+        self.channel.queue_declare(queue=routing_key_resolver(self.titan_config.inbound_channel, self.titan_config.sport, self.titan_config.env))
+        self.channel.queue_declare(queue=routing_key_resolver(self.titan_config.outbound_channel, self.titan_config.sport, self.titan_config.env))
 
     @retrying.retry(wait_fixed=BIGGER_WAIT_SEC * 1000)
     def rebuild_connection(self):
@@ -155,7 +168,7 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
                 # TODO: Is this the right division?
                 channel.basic_qos(prefetch_count=PREFETCH_COUNT)
                 channel.basic_consume(
-                    queue=titan_config.outbound_channel,
+                    queue=routing_key_resolver(titan_config.outbound_channel, titan_config.sport, titan_config.env),
                     on_message_callback=channel.callback,
                     auto_ack=True,
                 )
@@ -170,19 +183,8 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
             # Don't retry
             channel.basic_qos(prefetch_count=PREFETCH_COUNT)
             channel.basic_consume(
-                queue=titan_config.env,
+                queue=routing_key_resolver(titan_config.outbound_channel, titan_config.sport, titan_config.env),
                 on_message_callback=channel.callback,
                 auto_ack=True,
             )
             channel.start_consuming()
-
-
-def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str:
-    dev_suffix = ""
-    if "dev" == env:
-        dev_suffix = "-dev"
-
-    if suffix:
-        suffix = f"-{suffix}"
-
-    return f"{id}-{sport}{dev_suffix}{suffix}"

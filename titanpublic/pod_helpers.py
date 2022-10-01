@@ -199,7 +199,7 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
                 queue=routing_key_resolver(
                     titan_config.outbound_channel, titan_config.sport, titan_config.env
                 ),
-                on_message_callback=rc.channel.callback,
+                on_message_callback=rc.callback,
                 auto_ack=True,
             )
             rc.channel.start_consuming()

@@ -168,38 +168,38 @@ class RabbitChannel(object):
         self.build_connection()
 
 
+# TODO: Is this the right division of code?
 def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
-    channel = RabbitChannel(callback, titan_config)
+    rc = RabbitChannel(callback, titan_config)
 
     while True:
         if "prod" == titan_config.env:
             try:
-                # TODO: Is this the right division?
-                channel.basic_qos(prefetch_count=PREFETCH_COUNT)
-                channel.basic_consume(
+                rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
+                rc.channel.basic_consume(
                     queue=routing_key_resolver(
                         titan_config.outbound_channel,
                         titan_config.sport,
                         titan_config.env,
                     ),
-                    on_message_callback=channel.callback,
+                    on_message_callback=rc.callback,
                     auto_ack=True,
                 )
-                channel.start_consuming()
+                rc.channel.start_consuming()
             except:
                 logging.error(traceback.format_exc())
                 time.sleep(ROLLOVER_WAIT_SEC)
                 logging.error("Restarting Pika connection.")
-                channel.rebuild_connection()
+                rc.rebuild_connection()
                 # Then try again.
         else:
             # Don't retry
-            channel.basic_qos(prefetch_count=PREFETCH_COUNT)
-            channel.basic_consume(
+            rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
+            rc.channel.basic_consume(
                 queue=routing_key_resolver(
                     titan_config.outbound_channel, titan_config.sport, titan_config.env
                 ),
-                on_message_callback=channel.callback,
+                on_message_callback=rc.channel.callback,
                 auto_ack=True,
             )
-            channel.start_consuming()
+            rc.channel.start_consuming()

@@ -116,6 +116,14 @@ def process_message(
         result,
         shared_logic.get_secrets(titan_config.secrets_dir),
     )
+
+    if output_timestamp is None:
+        full_msg = f"M_ERR_TAG::{model_name}:TYPE_2_TS_ERROR - {body}"
+        # logging.error(traceback.format_exc())
+        logging.error(full_msg)
+        notify_titan(body, 0, "failure", titan_config, channel)
+        return
+
     notify_titan(body, output_timestamp, "success", titan_config, channel)
 
 

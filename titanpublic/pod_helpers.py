@@ -75,7 +75,7 @@ def notify_titan(
             titan_config.outbound_channel, titan_config.sport, titan_config.env
         ),
         body=output_body,
-        properties=pika.BasicProperties(delivery_mode=2),
+        properties=pika.BasicProperties(delivery_mode=1),
     )
 
 

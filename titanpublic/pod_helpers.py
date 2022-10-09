@@ -167,7 +167,7 @@ class RabbitChannel(object):
         if self.titan_config.suffixes:
             for suffix in self.titan_config.suffixes.split(","):
                 self.channel.queue_bind(
-                    exchange="",
+                    exchange=self.titan_config.inbound_channel,
                     queue=routing_key_resolver(
                         self.titan_config.inbound_channel,
                         self.titan_config.sport,

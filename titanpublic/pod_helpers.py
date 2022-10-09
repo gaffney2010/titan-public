@@ -5,7 +5,7 @@ import os
 import ssl
 import time
 import traceback
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 import attr
 import pika
@@ -40,6 +40,7 @@ class TitanConfig(object):
     # Don't include any suffixes
     inbound_channel: str = attr.ib()
     outbound_channel: str = attr.ib()
+    suffixes: Optional[str] = attr.ib(default=None)
 
 
 def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str:
@@ -163,6 +164,21 @@ class RabbitChannel(object):
                 self.titan_config.env,
             )
         )
+        if self.titan_config.suffixes:
+            for suffix in self.titan_config.suffixes.split(","):
+                self.channel.queue_bind(
+                    queue=routing_key_resolver(
+                        self.titan_config.inbound_channel,
+                        self.titan_config.sport,
+                        self.titan_config.env,
+                    ),
+                    routing_key=routing_key_resolver(
+                        self.titan_config.inbound_channel,
+                        self.titan_config.sport,
+                        self.titan_config.env,
+                        suffix=suffix,
+                    ),
+                )
         self.channel.queue_declare(
             queue=routing_key_resolver(
                 self.titan_config.outbound_channel,

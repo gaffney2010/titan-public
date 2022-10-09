@@ -76,12 +76,14 @@ def previous_years_with_gaps(
     results = list()
     
     # Do limit for safety
-    while years_considered < 100 and years_counted < years_back:
+    while years_considered < 10 and years_counted < years_back:
+        years_considered += 1
         st = en - 10000 * years_back
         for gap in gaps:
             if st <= gap < en:
                 break
         else:
+            years_counted += 1
             results.append((st, en))
 
     return shared_types.MultiRange(results)

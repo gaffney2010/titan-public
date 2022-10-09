@@ -157,9 +157,12 @@ class RabbitChannel(object):
     def build_connection(self):
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
+        queue_id=self.titan_config.inbound_channel
+        if self.titan_config.suffixes:
+            queue_id = f"{queue_id}-{self.titan_config.suffixes}"
         self.channel.queue_declare(
             queue=routing_key_resolver(
-                self.titan_config.inbound_channel,
+                queue_id,
                 self.titan_config.sport,
                 self.titan_config.env,
             )
@@ -173,7 +176,7 @@ class RabbitChannel(object):
                 self.channel.queue_bind(
                     exchange=self.titan_config.inbound_channel,
                     queue=routing_key_resolver(
-                        self.titan_config.inbound_channel,
+                        queue_id,
                         self.titan_config.sport,
                         self.titan_config.env,
                     ),
@@ -201,13 +204,17 @@ class RabbitChannel(object):
 def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
     rc = RabbitChannel(callback, titan_config)
 
+    queue_id=titan_config.inbound_channel
+    if titan_config.suffixes:
+        queue_id = f"{queue_id}-{titan_config.suffixes}"
+
     while True:
         if "prod" == titan_config.env:
             try:
                 rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
                 rc.channel.basic_consume(
                     queue=routing_key_resolver(
-                        titan_config.inbound_channel,
+                        queue_id,
                         titan_config.sport,
                         titan_config.env,
                     ),

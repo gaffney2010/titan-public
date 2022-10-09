@@ -12,9 +12,10 @@ class MultiRange(object):
 
         merged_ranges = list()
         working_st, working_en = None, None
-        for i, ri in enumerate(ranges[:-1]):
+        for i, ri in enumerate(ranges):
             # These don't overlap but may touch.
-            assert ri[1] <= ranges[i+1][0]
+            if i+1 < len(ranges):
+                assert ri[1] <= ranges[i+1][0]
 
             if working_st is None:
                 working_st, working_en = ri

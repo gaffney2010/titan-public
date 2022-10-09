@@ -166,6 +166,10 @@ class RabbitChannel(object):
         )
         if self.titan_config.suffixes:
             for suffix in self.titan_config.suffixes.split(","):
+                self.channel.exchange_declare(
+                    exchange=self.titan_config.inbound_channel,
+                    exchange_type="direct",
+                )
                 self.channel.queue_bind(
                     exchange=self.titan_config.inbound_channel,
                     queue=routing_key_resolver(

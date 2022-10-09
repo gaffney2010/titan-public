@@ -114,7 +114,7 @@ def _get_yesterday(date: shared_types.Date) -> datetime.datetime:
 
 
 def current_year_through_week(
-    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+    date: shared_types.Date, sport: str = "ncaam"
 ) -> Tuple[shared_types.Date, shared_types.Date]:
     st = _current_year_start(date, sport)
 
@@ -126,7 +126,7 @@ def current_year_through_week(
 
 
 def current_year_through_yesterday(
-    date: shared_types.Date, cutoff: Optional[int] = None, sport: str = "ncaam"
+    date: shared_types.Date, sport: str = "ncaam"
 ) -> Tuple[shared_types.Date, shared_types.Date]:
     st = _current_year_start(date, sport)
 
@@ -134,3 +134,12 @@ def current_year_through_yesterday(
     en = int(dt.strftime("%Y%m%d"))
 
     return (st, en)
+
+
+def approx_season_start(date: shared_types.Date, sport: str) -> shared_types.Date:
+    year = _current_year_start(date, sport) // 10000
+    if "ncaam" == sport:
+        return year * 10000 + 825
+    if "ncaaf" == sport:
+        return year * 10000 + 1106
+    raise NotImplementedError(f"Sport {sport} is not supported for year model.")

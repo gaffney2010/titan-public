@@ -49,6 +49,8 @@ def update_feature(
     value = "NULL"
     if "value" in payload:
         value = payload["value"]
+        if isinstance(value, str):
+            value = "'" + value + "'"
     payload = json.dumps(payload)
 
     if input_timestamp.find(",") != -1:

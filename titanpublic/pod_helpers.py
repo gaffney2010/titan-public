@@ -43,6 +43,18 @@ class TitanConfig(object):
     suffixes: Optional[str] = attr.ib(default=None)
 
 
+def exchange_resolver(id: str, sport: str, env: str, suffixes: str = "") -> str:
+    if suffixes == "":
+        # We don't need an exchange resolver in this case.
+        return ""
+
+    dev_suffix = ""
+    if "dev" == env:
+        dev_suffix = "-dev"
+
+    return f"{id}-{sport}{dev_suffix}"
+
+
 def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str:
     dev_suffix = ""
     if "dev" == env:
@@ -157,9 +169,6 @@ class RabbitChannel(object):
     def build_connection(self):
         self.connection = pika.BlockingConnection(self.parameters)
         self.channel = self.connection.channel()
-        queue_id=self.titan_config.inbound_channel
-        if self.titan_config.suffixes:
-            queue_id = f"{queue_id}-{self.titan_config.suffixes}"
         self.channel.queue_declare(
             queue=routing_key_resolver(
                 queue_id,
@@ -170,15 +179,26 @@ class RabbitChannel(object):
         if self.titan_config.suffixes:
             for suffix in self.titan_config.suffixes.split(","):
                 self.channel.exchange_declare(
-                    exchange=self.titan_config.inbound_channel,
+                    exchange=exchange_resolver(
+                        self.titan_config.inbound_channel,
+                        self.titan_config.sport,
+                        self.titan_config.env,
+                        suffixes=self.titan_config.suffixes,
+                    ),
                     exchange_type="direct",
                 )
                 self.channel.queue_bind(
-                    exchange=self.titan_config.inbound_channel,
-                    queue=routing_key_resolver(
-                        queue_id,
+                    exchange=exchange_resolver(
+                        self.titan_config.inbound_channel,
                         self.titan_config.sport,
                         self.titan_config.env,
+                        suffixes=self.titan_config.suffixes,
+                    ),
+                    queue=routing_key_resolver(
+                        self.titan_config.inbound_channel,
+                        self.titan_config.sport,
+                        self.titan_config.env,
+                        suffix=self.titan_config.suffixes,
                     ),
                     routing_key=routing_key_resolver(
                         self.titan_config.inbound_channel,
@@ -204,19 +224,16 @@ class RabbitChannel(object):
 def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
     rc = RabbitChannel(callback, titan_config)
 
-    queue_id=titan_config.inbound_channel
-    if titan_config.suffixes:
-        queue_id = f"{queue_id}-{titan_config.suffixes}"
-
     while True:
         if "prod" == titan_config.env:
             try:
                 rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
                 rc.channel.basic_consume(
                     queue=routing_key_resolver(
-                        queue_id,
+                        titan_config.inbound_channel,
                         titan_config.sport,
                         titan_config.env,
+                        titan_config.suffixes,
                     ),
                     on_message_callback=rc.callback,
                     auto_ack=True,
@@ -233,7 +250,10 @@ def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
             rc.channel.basic_qos(prefetch_count=PREFETCH_COUNT)
             rc.channel.basic_consume(
                 queue=routing_key_resolver(
-                    queue_id, titan_config.sport, titan_config.env
+                    titan_config.inbound_channel,
+                    titan_config.sport,
+                    titan_config.env,
+                    titan_config.suffixes,
                 ),
                 on_message_callback=rc.callback,
                 auto_ack=True,

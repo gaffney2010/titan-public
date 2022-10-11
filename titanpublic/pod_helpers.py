@@ -171,9 +171,10 @@ class RabbitChannel(object):
         self.channel = self.connection.channel()
         self.channel.queue_declare(
             queue=routing_key_resolver(
-                queue_id,
+                self.titan_config.inbound_channel,
                 self.titan_config.sport,
                 self.titan_config.env,
+                suffix=self.titan_config.suffixes,
             )
         )
         if self.titan_config.suffixes:

@@ -60,7 +60,7 @@ def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str
     if "dev" == env:
         dev_suffix = "-dev"
 
-    if suffix:
+    if suffix != "":
         suffix = f"-{suffix}"
 
     return f"{id}-{sport}{dev_suffix}{suffix}"
@@ -213,6 +213,7 @@ class RabbitChannel(object):
                 self.titan_config.outbound_channel,
                 self.titan_config.sport,
                 self.titan_config.env,
+                suffix=self.titan_config.suffixes,
             )
         )
 

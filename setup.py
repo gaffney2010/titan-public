@@ -5,7 +5,7 @@ setup(
     description="Helper to read titan DB",
     author="T.J. Gaffney",
     packages=["titanpublic"],
-    version="1.17.8",
+    version="1.17.9",
     install_requires=[
         "attrs==21.4.0",
         "frozendict==2.3.4",

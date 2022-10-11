@@ -40,7 +40,7 @@ class TitanConfig(object):
     # Don't include any suffixes
     inbound_channel: str = attr.ib()
     outbound_channel: str = attr.ib()
-    suffixes: Optional[str] = attr.ib(default=None)
+    suffixes: Optional[str] = attr.ib(default="")
 
 
 def exchange_resolver(id: str, sport: str, env: str, suffixes: str = "") -> str:
@@ -60,7 +60,7 @@ def routing_key_resolver(id: str, sport: str, env: str, suffix: str = "") -> str
     if "dev" == env:
         dev_suffix = "-dev"
 
-    if suffix != "":
+    if suffix != "" and suffix is not None:
         suffix = f"-{suffix}"
 
     return f"{id}-{sport}{dev_suffix}{suffix}"

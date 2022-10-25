@@ -2,6 +2,7 @@ import functools
 import os
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
+import warnings
 
 from frozendict import frozendict
 import yaml
@@ -32,6 +33,7 @@ def cache(
     If ttl_cache_exception is set, this looks up ttl (in seconds) by exception class
         keys.  After expiration, the function will run again.
     """
+    warnings.warn("Please migrate to titan-common")
     if not no_cache_exception:
         no_cache_exception = list()
     if not ttl_cache_exception:

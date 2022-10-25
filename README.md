@@ -9,7 +9,7 @@ A nice API for accessing titan data
 2. Pip install this library.  For example, include this in your requirements:
 
 ```
-titanpublic @ git+https://github.com/gaffney2010/titan-public.git#egg=titanpublic-1.17.11
+titanpublic @ git+https://github.com/gaffney2010/titan-public.git#egg=titanpublic-1.17.12
 ```
 
 3. Copy `secrets.yaml` into your directory.  pip install pyyaml and frozendict.
@@ -32,3 +32,5 @@ secrets = frozendict(secrets)
 
 df, _ = titanpublic.pull_data("ncaam", ("feature_1", "feature_2"), 20201201, 20201231, secrets)
 ```
+
+TODO: mypy and flake

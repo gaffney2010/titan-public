@@ -6,6 +6,7 @@ import ssl
 import time
 import traceback
 from typing import Any, Callable, Dict, Optional
+import warnings
 
 import attr
 import pika
@@ -81,6 +82,7 @@ def notify_titan(
     titan_config: TitanConfig,
     channel,
 ) -> None:
+    warnings.warn("Please migrate to titan-common")
     output_body = " ".join([input_body, str(output_timestamp), status,])
     channel.basic_publish(
         exchange="",
@@ -95,6 +97,7 @@ def notify_titan(
 def process_message(
     body: str, callback: MessageCallback, titan_config: TitanConfig, channel
 ) -> None:
+    warnings.warn("Please migrate to titan-common")
     (sport, model_name, input_timestamp, away, home, date, neutral,) = body.split()
     date = int(date)
     neutral = int(neutral)
@@ -142,6 +145,7 @@ def process_message(
 
 class RabbitChannel(object):
     def __init__(self, callback: MessageCallback, titan_config: TitanConfig):
+        warnings.warn("Please migrate to titan-common")
         # SSL Context for TLS configuration of Amazon
         def wrapped_callback(ch, method, properties, body):
             logging.info(f"Found {body}")
@@ -224,6 +228,7 @@ class RabbitChannel(object):
 
 # TODO: Is this the right division of code?
 def main(callback: MessageCallback, titan_config: TitanConfig) -> None:
+    warnings.warn("Please migrate to titan-common")
     rc = RabbitChannel(callback, titan_config)
 
     while True:

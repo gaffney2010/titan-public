@@ -7,7 +7,7 @@ from . import shared_types
 
 def _current_year_start(date: shared_types.Date, sport: str) -> shared_types.Date:
     """Return a date between season containing `date` and previous season."""
-    if sport in ("ncaam", "ncaaf"):
+    if sport in ("ncaam", "ncaaw"):
         cutoff = 630
     elif "ncaaf" == sport:
         # Some pandemic games were played in the spring.  :/
@@ -27,7 +27,7 @@ def season_year_label(
     date: shared_types.Date,
     sport: str = "ncaam",
 ) -> shared_types.Date:
-    if sport in ("ncaam", "ncaaf"):
+    if sport in ("ncaam", "ncaaw"):
         cutoff = 630
         year, month_day = divmod(date, 10000)
         if month_day > cutoff:
@@ -101,7 +101,7 @@ def current_year(
 
 def current_year_from_season(season: int, sport: str) -> Tuple[shared_types.Date, shared_types.Date]:
     # Just pick some midseason date
-    if sport in ("ncaam", "ncaaf"):
+    if sport in ("ncaam", "ncaaw"):
         return current_year(season*10000+101, sport=sport)
 
     if "ncaaf" == sport:
@@ -141,7 +141,7 @@ def current_year_through_yesterday(
 
 def approx_season_start(date: shared_types.Date, sport: str) -> shared_types.Date:
     year = _current_year_start(date, sport) // 10000
-    if sport in ("ncaam", "ncaaf"):
+    if sport in ("ncaam", "ncaaw"):
         return year * 10000 + 825
     if "ncaaf" == sport:
         return year * 10000 + 1106

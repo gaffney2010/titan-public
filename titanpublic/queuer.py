@@ -114,7 +114,7 @@ class QueueChannel(object):
         str,
         routing_key: str,
         callback: CallbackSignature,
-        condition: conditionSignature,
+        condition: ConditionSignature,
     ) -> None:
         if not condition():
             return
@@ -129,7 +129,7 @@ class QueueChannel(object):
         self,
         queue_id: str,
         callback: CallbackSignature,
-        condition: conditionSignature,
+        condition: ConditionSignature,
         suffix="",
     ) -> None:
         if not self.built:

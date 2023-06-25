@@ -113,7 +113,7 @@ class QueueChannel(object):
         self,
         str,
         routing_key: str,
-        callback: callbackSignature,
+        callback: CallbackSignature,
         condition: conditionSignature,
     ) -> None:
         if not condition():
@@ -128,7 +128,7 @@ class QueueChannel(object):
     def consume_while_condition(
         self,
         queue_id: str,
-        callback: callbackSignature,
+        callback: CallbackSignature,
         condition: conditionSignature,
         suffix="",
     ) -> None:
@@ -152,7 +152,7 @@ class QueueChannel(object):
             self.build_channel()
             self.consume_while_condition(callback, condition)
 
-    def consume_to_death(self, callback: callbackSignature) -> None:
+    def consume_to_death(self, callback: CallbackSignature) -> None:
         self._consume_while_condition(callback, lambda: True)
 
     def consumption_impl(self, routing_key: str) -> Iterable[CallbackArgument]:

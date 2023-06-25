@@ -53,13 +53,13 @@ class QueueChannel(object):
 
         # Rebuild the queues
         self.built_queues = set()
-        for queue_id in self.all_queues:
-            self.queue_declare(queue_id)
+        for queue_routing_id in self.all_queues:
+            self.queue_declare(queue_routing_id)
 
     def build_channel_impl(self) -> Any:
         raise NotImplementedError
 
-    def queue_declare(self, queue_id: str) -> None:
+    def queue_declare(self, queue_id: str, suffix: str = "") -> None:
         if not self.built:
             raise AttributeError("Pls build channel first.")
         if not queue_id:
@@ -71,7 +71,10 @@ class QueueChannel(object):
             return
 
         routing_key = titanpublic.pod_helpers.routing_key_resolver(
-            queue_id, self.sport, self.env
+            queue_id,
+            self.sport,
+            self.env,
+            suffix=suffix,
         )
 
         try:
@@ -91,7 +94,10 @@ class QueueChannel(object):
             raise Exception(f"Please first build queue {queue_id}")
 
         routing_key = titanpublic.pod_helpers.routing_key_resolver(
-            queue_id, self.sport, self.env, suffix=suffix
+            queue_id,
+            self.sport,
+            self.env,
+            suffix=suffix,
         )
 
         try:
@@ -120,7 +126,11 @@ class QueueChannel(object):
         self._consume_while_condition(callback, condition)
 
     def consume_while_condition(
-        self, queue_id: str, callback: callbackSignature, condition: conditionSignature
+        self,
+        queue_id: str,
+        callback: callbackSignature,
+        condition: conditionSignature,
+        suffix="",
     ) -> None:
         if not self.built:
             raise AttributeError("Pls build channel first.")
@@ -128,7 +138,10 @@ class QueueChannel(object):
             raise Exception(f"Please first build queue {queue_id}")
 
         routing_key = titanpublic.pod_helpers.routing_key_resolver(
-            queue_id, self.sport, self.env
+            queue_id,
+            self.sport,
+            self.env,
+            suffix=suffix,
         )
 
         try:

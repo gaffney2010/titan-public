@@ -45,6 +45,7 @@ class TitanConfig(object):
 
 
 def exchange_resolver(id: str, sport: str, env: str, suffixes: str = "") -> str:
+    warnings.warn("Exchanges are deprecated")
     if suffixes == "":
         # We don't need an exchange resolver in this case.
         return ""

@@ -13,6 +13,7 @@ setup(
         "pandas==1.4.2",
         "pika==1.3.0",
         "pyyaml==6.0",
+        "redis",
         "retrying==1.3.3"
     ],
 )

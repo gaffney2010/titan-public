@@ -152,8 +152,8 @@ class QueueChannel(object):
             self.build_channel()
             self.consume_while_condition(callback, condition)
 
-    def consume_to_death(self, callback: CallbackSignature) -> None:
-        self._consume_while_condition(callback, lambda: True)
+    def consume_to_death(self, callback: CallbackSignature, suffix: str = "") -> None:
+        self.consume_while_condition(callback, lambda: True, suffix=suffix)
 
     def consumption_impl(self, routing_key: str) -> Iterable[CallbackArgument]:
         raise NotImplementedError

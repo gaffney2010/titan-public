@@ -161,7 +161,7 @@ class QueueChannel(object):
 
 class RedisChannel(QueueChannel):
     def __init__(self):
-        super(RabbitChannel).__init__()
+        super().__init__()
 
     def build_channel_impl(self) -> None:
         pass  # Nothing to do for redis
@@ -183,7 +183,7 @@ class RabbitChannel(QueueChannel):
     def __init__(
         self, rabbitmq_user: str, rabbitmq_password: str, rabbitmq_broker_id: str
     ):
-        super(RabbitChannel).__init__()
+        super().__init__()
         if "prod" == self.env:
             self.retry_exceptions = (*self.retry_exceptions, pika.AMQPError)
         self.rabbitmq_user = rabbitmq_user

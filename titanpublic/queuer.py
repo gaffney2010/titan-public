@@ -162,6 +162,7 @@ class QueueChannel(object):
 class RedisChannel(QueueChannel):
     def __init__(self):
         super().__init__()
+        self.r = redis.Redis(host="localhost", port=6379, db=0)
 
     def build_channel_impl(self) -> None:
         pass  # Nothing to do for redis
@@ -170,12 +171,12 @@ class RedisChannel(QueueChannel):
         pass  # Nothing to do for redis
 
     def basic_publish_impl(self, routing_key: str, msg: str) -> None:
-        r.rpush(routing_key, msg)
+        self.r.rpush(routing_key, msg)
 
     def consumption_impl(self, routing_key: str) -> Iterable[CallbackArgument]:
-        msg = r.lpop(routing_key)
+        msg = self.r.lpop(routing_key)
         while msg is None:
-            msg = r.lpop(routing_key)
+            msg = self.r.lpop(routing_key)
         return msg_pag(msg)
 
 

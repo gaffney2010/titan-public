@@ -106,7 +106,7 @@ class QueueChannel(object):
             self.build_channel()
             self.basic_publish(msg, queue_id, suffix)
 
-    def basic_publish_impl(self, exchange: str, routing_key: str, msg: str) -> None:
+    def basic_publish_impl(self, routing_key: str, msg: str) -> None:
         raise NotImplementedError
 
     def _consume_while_condition(
@@ -169,7 +169,7 @@ class RedisChannel(QueueChannel):
     def queue_declare_impl(self, routing_key: str) -> None:
         pass  # Nothing to do for redis
 
-    def basic_publish_impl(self, exchange: str, routing_key: str, msg: str) -> None:
+    def basic_publish_impl(self, routing_key: str, msg: str) -> None:
         r.rpush(routing_key, msg)
 
     def consumption_impl(self, routing_key: str) -> Iterable[CallbackArgument]:
@@ -212,9 +212,9 @@ class RabbitChannel(QueueChannel):
     def queue_declare_impl(self, routing_key: str) -> None:
         self._channel.queue_declare(queue=routing_key)
 
-    def basic_publish_impl(self, exchange: str, routing_key: str, msg: str) -> None:
+    def basic_publish_impl(self, routing_key: str, msg: str) -> None:
         self._channel.basic_publish(
-            exchange=exchange,
+            exchange="",
             routing_key=routing_key,
             body=msg,
             properties=pika.BasicProperties(delivery_mode=1),

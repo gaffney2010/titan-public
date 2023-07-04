@@ -151,7 +151,9 @@ class QueueChannel(object):
             self.build_channel()
             self.consume_while_condition(callback, condition)
 
-    def consume_to_death(self, queue_id: str, callback: CallbackSignature, suffix: str = "") -> None:
+    def consume_to_death(
+        self, queue_id: str, callback: CallbackSignature, suffix: str = ""
+    ) -> None:
         self.consume_while_condition(queue_id, callback, lambda: True, suffix=suffix)
 
     def consumption_impl(self, routing_key: str) -> Iterable[CallbackArgument]:
@@ -235,12 +237,14 @@ class RabbitChannel(QueueChannel):
 
 
 @functools.lru_cache(1)
-def get_rabbit_channel() -> RabbitChannel:
+def get_rabbit_channel(
+    rabbitmq_user: str, rabbitmq_password: str, rabbitmq_broker_id: str
+) -> RabbitChannel:
     """Creates a singleton"""
-    return RabbitChannel()
+    return RabbitChannel(rabbitmq_user, rabbitmq_password, rabbitmq_broker_id)
 
 
 @functools.lru_cache(1)
-def get_redis_channel() -> RedisChannel:
+def get_redis_channel(host: str = "localhost", port: int = 6379) -> RedisChannel:
     """Creates a singleton"""
-    return RedisChannel()
+    return RedisChannel(host=host, port=port)

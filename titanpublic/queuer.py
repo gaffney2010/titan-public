@@ -48,7 +48,7 @@ class QueueChannel(object):
     )
     def build_channel(self) -> None:
         logging.error("Establishing queue channnel")
-        self._channel = build_channel_impl()
+        self._channel = self.build_channel_impl()
         self.built = True
 
         # Rebuild the queues

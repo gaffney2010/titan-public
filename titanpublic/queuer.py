@@ -159,9 +159,9 @@ class QueueChannel(object):
 
 
 class RedisChannel(QueueChannel):
-    def __init__(self):
+    def __init__(self, host: str = "localhost", port: int = 6379):
         super().__init__()
-        self.r = redis.Redis(host="localhost", port=6379, db=0)
+        self.r = redis.Redis(host=host, port=port, db=0)
 
     def build_channel_impl(self) -> None:
         pass  # Nothing to do for redis

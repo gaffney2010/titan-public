@@ -111,7 +111,6 @@ class QueueChannel(object):
 
     def _consume_while_condition(
         self,
-        str,
         routing_key: str,
         callback: CallbackSignature,
         condition: ConditionSignature,

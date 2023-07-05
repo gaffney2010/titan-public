@@ -178,7 +178,7 @@ class RedisChannel(QueueChannel):
         msg = self.r.lpop(routing_key)
         while msg is None:
             msg = self.r.lpop(routing_key)
-        return msg_pag(msg)
+        return msg_pad(msg)
 
 
 class RabbitChannel(QueueChannel):

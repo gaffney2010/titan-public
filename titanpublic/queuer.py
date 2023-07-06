@@ -118,11 +118,11 @@ class QueueChannel(object):
         if not condition():
             return
 
-        for callback_args in self.consumption_impl(routing_key):
-            callback(*callback_args)
-            if not condition():
-                return
-        self._consume_while_condition(routing_key, callback, condition)
+        while condition():
+            for callback_args in self.consumption_impl(routing_key):
+                callback(*callback_args)
+                if not condition():
+                    return
 
     def consume_while_condition(
         self,

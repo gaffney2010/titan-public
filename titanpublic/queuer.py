@@ -87,7 +87,7 @@ class QueueChannel(object):
         self.all_queues.add(queue_id)
         self.built_queues.add(queue_id)
 
-    def clear_queue(self, queue_id: str, suffix: Optional[str] = None) -> None:
+    def queue_clear(self, queue_id: str, suffix: Optional[str] = None) -> None:
         if suffix:
             raise Exception("suffix isn't supported for this operation")
         if not self.built:
@@ -102,12 +102,12 @@ class QueueChannel(object):
         )
 
         try:
-            self.clear_queue_impl(queue_id)
+            self.queue_clear_impl(queue_id)
         except self.retry_exceptions:
             self.build_channel()
-            self.clear_queue(queue_id)
+            self.queue_clear(queue_id)
 
-    def clear_queue_impl(self, routing_key: str) -> None:
+    def queue_clear_impl(self, routing_key: str) -> None:
         raise NotImplementedError
 
     def basic_publish(self, msg: str, queue_id: str, suffix: str = "") -> None:

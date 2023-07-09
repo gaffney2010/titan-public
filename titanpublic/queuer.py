@@ -87,6 +87,29 @@ class QueueChannel(object):
         self.all_queues.add(queue_id)
         self.built_queues.add(queue_id)
 
+    def clear_queue(self, queue_id: str, suffix: Optional[str] = None) -> None:
+        if suffix:
+            raise Exception("suffix isn't supported for this operation")
+        if not self.built:
+            raise AttributeError("Pls build channel first.")
+        if queue_id not in self.all_queues:
+            raise Exception(f"Please first build queue {queue_id}")
+
+        routing_key = titanpublic.pod_helpers.routing_key_resolver(
+            queue_id,
+            self.sport,
+            self.env,
+        )
+
+        try:
+            self.clear_queue_impl(queue_id)
+        except self.retry_exceptions:
+            self.build_channel()
+            self.clear_queue(queue_id)
+
+    def clear_queue_impl(self, routing_key: str) -> None:
+        raise NotImplementedError
+
     def basic_publish(self, msg: str, queue_id: str, suffix: str = "") -> None:
         if not self.built:
             raise AttributeError("Pls build channel first.")
@@ -170,6 +193,9 @@ class RedisChannel(QueueChannel):
 
     def queue_declare_impl(self, routing_key: str) -> None:
         pass  # Nothing to do for redis
+
+    def queue_clear_impl(self, routing_key: str) -> None:
+        self.r.delete(routing_key)
 
     def basic_publish_impl(self, routing_key: str, msg: str) -> None:
         self.r.rpush(routing_key, msg)
